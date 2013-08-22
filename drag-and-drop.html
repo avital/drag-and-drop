@@ -1,0 +1,17 @@
+<body>
+  {{> allNotes}}
+</body>
+
+<template name="allNotes">
+  <div class="all">
+    {{#each notes}}
+      {{> draggableNote}}
+    {{/each}}
+  </div>
+</template>
+
+<template name="draggableNote">
+  <div class="note" style="top: {{top}}px; left: {{left}}px;">
+    Hi, my name is:
+  </div>
+</template>
