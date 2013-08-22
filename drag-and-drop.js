@@ -1,9 +1,16 @@
-Notes = new Meteor.Collection("notes");
+Meteor.methods({
+  updateNote: function (id, top, left) {
+    TransientNotes.update(id, {$set: {top: top, left: left}});
+  }
+});
 
 /// CLIENT CODE
 if (Meteor.isClient) {
+  TransientNotes = new Meteor.Collection("transientNotes");
+  Meteor.subscribe("transientNotes");
+
   Template.allNotes.notes = function () {
-    return Notes.find();
+    return TransientNotes.find();
   };
 
   Template.draggableNote.events({
@@ -21,10 +28,11 @@ if (Meteor.isClient) {
   Template.allNotes.events({
     'mousemove': function (evt) {
       if (Session.get("activeNote")) {
-        Notes.update(Session.get("activeNote"), {$set: {
-          top: evt.pageY - Session.get("offsetY"),
-          left: evt.pageX - Session.get("offsetX")
-        }});
+        Meteor.call(
+          "updateNote",
+          /*id=*/ Session.get("activeNote"),
+          /*top=*/ evt.pageY - Session.get("offsetY"),
+          /*left=*/ evt.pageX - Session.get("offsetX"));
       }
     }
   });
@@ -32,10 +40,15 @@ if (Meteor.isClient) {
 
 /// SERVER CODE
 if (Meteor.isServer) {
+  TransientNotes = new Meteor.Collection("transientNotes", {connection: null});
+  Meteor.publish("transientNotes", function () {
+    return TransientNotes.find();
+  });
+
   Meteor.startup(function () {
-    if (Notes.find().count() === 0) {
-      Notes.insert({top: 100, left: 50});
-      Notes.insert({top: 200, left: 300});
+    if (TransientNotes.find().count() === 0) {
+      TransientNotes.insert({top: 100, left: 50});
+      TransientNotes.insert({top: 200, left: 300});
     }
   });
 }
